@@ -61,6 +61,8 @@ public class GameScreen implements Screen {
     private static final int grid_size_ = 15;
     private static final float padding = 100.f;
     private static final float line_width = 5.f;
+    //Count of tiles
+    private static final int tile_count = grid_size_-1;
 
 
 
@@ -158,6 +160,8 @@ public class GameScreen implements Screen {
         float row_width = column_height;
         float offset = row_width / ((float)grid_size_ - 1.f);
         float top_left_x = screen_width / 2.f - row_width / 2.f;
+        System.out.println("Screen Height " + screen_height + "\nScreen Width " + screen_width + "\nRow Witdh " + row_width +
+                            "\nCoulumn Height" + column_height + "\n Offset" +  offset + "\n top left x" + top_left_x);
 
         // draw grid
         shape_renderer_.begin(ShapeType.Filled);
