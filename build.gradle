@@ -12,7 +12,9 @@ buildscript {
     dependencies {
 
     }
+
 }
+
 
 allprojects {
     apply plugin: "eclipse"
@@ -42,6 +44,12 @@ allprojects {
         compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
         // https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket
         compile group: 'org.java-websocket', name: 'Java-WebSocket', version: '1.5.1'
+        testImplementation 'junit:junit:4.13'
+    }
+    test {
+        useJUnit()
+
+        maxHeapSize = '1G'
     }
 }
 
