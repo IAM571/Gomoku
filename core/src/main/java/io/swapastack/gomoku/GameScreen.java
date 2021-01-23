@@ -1,9 +1,6 @@
 package io.swapastack.gomoku;
 
-import com.badlogic.gdx.ApplicationListener;
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -25,9 +22,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 /**
  * This is the GameScreen class.
  * This class can be used to implement your game logic.
- *
+ * <p>
  * The current implementation provides a colorful grid and a leave game button.
- *
+ * <p>
  * A good place to gather further information is here:
  * https://github.com/libgdx/libgdx/wiki/Input-handling
  * Input and Event handling is necessary to handle mouse and keyboard input.
@@ -35,7 +32,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * @author Dennis Jehle
  */
 public class GameScreen implements Screen {
-
+    //Gamepiece placing
+    private final GameScreenModel gameScreenModel;
     // reference to the parent object
     private final Gomoku parent_;
     // OrthographicCamera
@@ -51,28 +49,40 @@ public class GameScreen implements Screen {
     private final ShapeRenderer shape_renderer_;
     // Skin
     private final Skin skin_;
-    // Text
-    private Texture lava_texture;
     // Colors
-    private static final Color red_   = new Color(1.f,0.f,0.f,1.f);
-    private static final Color green_ = new Color(0.f,1.f,0.f,1.f);
-    private static final Color blue_  = new Color(0.f,0.f,1.f,1.f);
+    private static final Color red_ = new Color(1.f, 0.f, 0.f, 1.f);
+    private static final Color green_ = new Color(0.f, 1.f, 0.f, 1.f);
+    private static final Color blue_ = new Color(0.f, 0.f, 1.f, 1.f);
     // grid dimensions
     private static final int grid_size_ = 15;
     private static final float padding = 100.f;
     private static final float line_width = 5.f;
     //Count of tiles
-    private static final int tile_count = grid_size_-1;
-
+    private static final int grid_tiles = grid_size_ - 1;
+    //grid begin x
+    private static final float grid_x_min = 380.f + (line_width / 2);
+    //grid begin y
+    private static final float grid_y_min = 100.f + (line_width / 2);
+    //grid end x
+    private static final float grid_x_max = Gdx.graphics.getWidth() - grid_x_min;
+    //grid end y
+    private static final float grid_y_max = Gdx.graphics.getHeight() - grid_y_min;
+    //Width of grid
+    private static final float grid_width = Gdx.graphics.getWidth() - (2 * grid_x_min);
+    //dimensions of one tile
+    private static final float dimension_one_tile = grid_width / grid_tiles;
+    private Tuple<Integer> gamestone = null;
 
 
     public GameScreen(Gomoku parent) {
+        //GamescreemModel method
+        gameScreenModel = new GameScreenModel();
         // store reference to parent class
         parent_ = parent;
         // initialize OrthographicCamera with current screen size
         // e.g. OrthographicCamera(1280.f, 720.f)
         Tuple<Integer> client_area_dimensions = parent_.get_window_dimensions();
-        camera_ = new OrthographicCamera((float)client_area_dimensions.first, (float)client_area_dimensions.second);
+        camera_ = new OrthographicCamera((float) client_area_dimensions.first, (float) client_area_dimensions.second);
         // initialize ScreenViewport with the OrthographicCamera created above
         viewport_ = new ScreenViewport(camera_);
         // initialize SpriteBatch
@@ -83,19 +93,19 @@ public class GameScreen implements Screen {
         shape_renderer_ = new ShapeRenderer();
         // initialize the Skin
         skin_ = new Skin(Gdx.files.internal("glassy/skin/glassy-ui.json"));
-        // initalize the texture
-        lava_texture = new Texture(Gdx.files.internal("texture/lava.jpg"));
         // create switch to MainMenu button
         Button menu_screen_button = new TextButton("LEAVE GAME", skin_, "small");
         menu_screen_button.setPosition(25.f, 25.f);
+
         // add InputListener to Button, and close app if Button is clicked
-        menu_screen_button.addListener(new InputListener(){
+        menu_screen_button.addListener(new InputListener() {
             @Override
-            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 return true;
             }
+
             @Override
-            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 parent_.change_screen(ScreenEnum.MENU);
             }
         });
@@ -105,34 +115,52 @@ public class GameScreen implements Screen {
     }
 
 
-
     /**
      * Interpolate between RGB(A) values.
      * Inspired by: https://stackoverflow.com/a/21010385/5380008
      *
-     * @param color1 first color to mix
-     * @param color2 second color to mix
+     * @param color1   first color to mix
+     * @param color2   second color to mix
      * @param fraction percentage 0.f-1.f
      * @return {@link Color} mixed color
      * @author Dennis Jehle
      */
     private Color mix(Color color1, Color color2, float fraction) {
         // calculated the mixed RGB values
-        float r =  (color2.r - color1.r) * fraction + color1.r;
-        float g =  (color2.g - color1.g) * fraction + color1.g;
-        float b =  (color2.b - color1.b) * fraction + color1.b;
+        float r = (color2.r - color1.r) * fraction + color1.r;
+        float g = (color2.g - color1.g) * fraction + color1.g;
+        float b = (color2.b - color1.b) * fraction + color1.b;
         // return the mixed color
         return new Color(r, g, b, 1.f);
     }
 
     /**
      * Called when this screen becomes the current screen for a {@link Game}.
+     *
      * @author Dennis Jehle
      */
     @Override
     public void show() {
+        InputMultiplexer multiplexer = new InputMultiplexer();
+        Gdx.input.setInputProcessor(multiplexer);
+
+        //Mouse click & game piece set
+        multiplexer.addProcessor(new InputAdapter() {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                if (button != Input.Buttons.LEFT || pointer > 0) return false;
+                Tuple tiles_position = gameScreenModel.findTilesPosition(screenX,Gdx.graphics.getHeight()-screenY);
+                if (tiles_position==null) return false;
+                gamestone = gameScreenModel.findPixels((int) tiles_position.first,(int) tiles_position.second);
+
+                return true;
+            }
+
+        });
+
         // InputProcessor for Stage
-        Gdx.input.setInputProcessor(stage_);
+        //Gdx.input.setInputProcessor(stage_);
+        multiplexer.addProcessor(stage_);
     }
 
     /**
@@ -154,19 +182,17 @@ public class GameScreen implements Screen {
         sprite_batch_.setProjectionMatrix(camera_.combined);
 
         // gather necessary information for grid drawing
-        float screen_width  = Gdx.graphics.getWidth();
+        float screen_width = Gdx.graphics.getWidth();
         float screen_height = Gdx.graphics.getHeight();
         float column_height = screen_height - 2.f * padding;
         float row_width = column_height;
-        float offset = row_width / ((float)grid_size_ - 1.f);
+        float offset = row_width / ((float) grid_size_ - 1.f);
         float top_left_x = screen_width / 2.f - row_width / 2.f;
-        System.out.println("Screen Height " + screen_height + "\nScreen Width " + screen_width + "\nRow Witdh " + row_width +
-                            "\nCoulumn Height" + column_height + "\n Offset" +  offset + "\n top left x" + top_left_x);
 
         // draw grid
         shape_renderer_.begin(ShapeType.Filled);
         for (int i = 0; i < grid_size_; i++) {
-            float fraction = (float)(i + 1) / (float)grid_size_;
+            float fraction = (float) (i + 1) / (float) grid_size_;
             shape_renderer_.rectLine(
                     top_left_x + i * offset, padding + column_height
                     , top_left_x + i * offset, padding
@@ -183,22 +209,16 @@ public class GameScreen implements Screen {
             );
         }
         shape_renderer_.end();
-
-        sprite_batch_.begin();
-        //draw rectangle
-        sprite_batch_.draw(lava_texture, 400,350,400,100,20,20);
-        sprite_batch_.end();
-
-        shape_renderer_.setColor(Color.WHITE);
-        shape_renderer_.begin(ShapeType.Filled);
-        shape_renderer_.circle(400, 550, 10);
-        shape_renderer_.end();
-
+        if (gamestone!=null) {
+            shape_renderer_.setColor(Color.WHITE);
+            shape_renderer_.begin(ShapeType.Filled);
+            shape_renderer_.circle(gamestone.first, gamestone.second, 10);
+            shape_renderer_.end();
+        }
         // update the Stage
         stage_.act(delta);
         // draw the Stage
         stage_.draw();
-
 
 
     }
@@ -206,10 +226,10 @@ public class GameScreen implements Screen {
     /**
      * This method is called if the window gets resized.
      *
-     * @param width new window width
+     * @param width  new window width
      * @param height new window height
-     * @see ApplicationListener#resize(int, int)
      * @author Dennis Jehle
+     * @see ApplicationListener#resize(int, int)
      */
     @Override
     public void resize(int width, int height) {
@@ -219,8 +239,8 @@ public class GameScreen implements Screen {
     /**
      * This method is called if the application lost focus.
      *
-     * @see ApplicationListener#pause()
      * @author Dennis Jehle
+     * @see ApplicationListener#pause()
      */
     @Override
     public void pause() {
@@ -230,8 +250,8 @@ public class GameScreen implements Screen {
     /**
      * This method is called if the applaction regained focus.
      *
-     * @see ApplicationListener#resume()
      * @author Dennis Jehle
+     * @see ApplicationListener#resume()
      */
     @Override
     public void resume() {
@@ -240,6 +260,7 @@ public class GameScreen implements Screen {
 
     /**
      * Called when this screen is no longer the current screen for a {@link Game}.
+     *
      * @author Dennis Jehle
      */
     @Override
@@ -249,6 +270,7 @@ public class GameScreen implements Screen {
 
     /**
      * Called when this screen should release all resources.
+     *
      * @author Dennis Jehle
      */
     @Override
