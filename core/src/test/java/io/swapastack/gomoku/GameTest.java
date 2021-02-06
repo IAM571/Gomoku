@@ -1,5 +1,6 @@
 package io.swapastack.gomoku;
 
+import com.badlogic.gdx.Game;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,18 +37,113 @@ public class GameTest {
         Assert.assertEquals(378,ergebnis2.second);
 
     }
+    @Test
+    public void player_change (){
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        Assert.assertEquals(Player.ONE,gameScreenModel.getCurrent_player());
+        gameScreenModel.setGamestone_position(1,1);
+        gameScreenModel.handle_rules_after_gamestone();
+        Assert.assertEquals(Player.TWO,gameScreenModel.getCurrent_player());
+
+    }
+    //Farbwechseltest für Eröffnungsregel 1
+    @Test
+    public void test_name_change(){
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        String name1 = Player.ONE.getName();
+        String name2 = Player.TWO.getName();
+        gameScreenModel.change_player_colour();
+        Assert.assertEquals(name2,Player.ONE.getName());
+        Assert.assertEquals(name1, Player.TWO.getName());
+    }
+    //Test für Eröffnungsregel
+    @Test
+    public void test_openingrule(){
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        gameScreenModel.setGamestone_position(1,2);
+        int temp1 = gameScreenModel.handle_rules_after_gamestone();
+        gameScreenModel.setGamestone_position(2,2);
+        int temp2 = gameScreenModel.handle_rules_after_gamestone();
+        Assert.assertEquals(4, temp1);
+        Assert.assertEquals(1, temp2);
+    }
+    //Test openingrule 2
+    @Test
+    public void openingrule_2(){
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        gameScreenModel.setGamestone_position(1,2);
+        gameScreenModel.handle_rules_after_gamestone();
+        gameScreenModel.setGamestone_position(2,2);
+        gameScreenModel.handle_rules_after_gamestone(); //default case is openingrule 2
+        Assert.assertEquals(Player.TWO,gameScreenModel.getCurrent_player());
+    }
+    @Test
+    public void openingrule_3() {
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        gameScreenModel.setGamestone_position(1, 2);
+        gameScreenModel.handle_rules_after_gamestone();
+        gameScreenModel.setGamestone_position(2, 2);
+        gameScreenModel.setOpening_rule(3);
+        Assert.assertEquals(Player.TWO, gameScreenModel.getCurrent_player());
+        String name1 = Player.ONE.getName();
+        String name2 = Player.TWO.getName();
+        gameScreenModel.setGamestone_position(3,3);
+        gameScreenModel.handle_rules_after_gamestone();
+        Assert.assertEquals(name2, Player.ONE.getName());
+        Assert.assertEquals(name1, Player.TWO.getName());
+        Assert.assertEquals(Player.ONE, gameScreenModel.getCurrent_player());
+        gameScreenModel.setGamestone_position(4,6);
+        gameScreenModel.handle_rules_after_gamestone();
+        Assert.assertEquals(Player.ONE.getName(),name1);
+        Assert.assertEquals(Player.TWO.getName(), name2);
+        Assert.assertEquals(Player.ONE, gameScreenModel.getCurrent_player());
+    }
+
+    @Test //horizontal win true
+    public void win_condition_h() {
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        gameScreenModel.setGamestone_position(4, 5);
+        gameScreenModel.setGamestone_position(5, 5);
+        gameScreenModel.setGamestone_position(6, 5);
+        gameScreenModel.setGamestone_position(7, 5);
+        gameScreenModel.setGamestone_position(8, 5);
+        gameScreenModel.win_condition();
+        Assert.assertEquals(true, gameScreenModel.win_condition());
+
+    }
+    @Test //vertical win true
+    public void win_condition_v() {
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        gameScreenModel.setGamestone_position(4, 4);
+        gameScreenModel.setGamestone_position(4, 5);
+        gameScreenModel.setGamestone_position(4, 6);
+        gameScreenModel.setGamestone_position(4, 7);
+        gameScreenModel.setGamestone_position(4, 8);
+        gameScreenModel.win_condition();
+        Assert.assertEquals(true, gameScreenModel.win_condition());
+
+    }
+    @Test //diagonal win true
+    public void win_condition_d() {
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        gameScreenModel.setGamestone_position(4, 4);
+        gameScreenModel.setGamestone_position(5, 5);
+        gameScreenModel.setGamestone_position(6, 6);
+        gameScreenModel.setGamestone_position(7, 7);
+        gameScreenModel.setGamestone_position(8, 8);
+        gameScreenModel.win_condition();
+        Assert.assertEquals(true, gameScreenModel.win_condition());
+    }
+
+    @Test //no win => false
+    public void no_win_condition() {
+        GameScreenModel gameScreenModel = new GameScreenModel();
+        gameScreenModel.setGamestone_position(4, 5);
+        gameScreenModel.setGamestone_position(5, 5);
+        gameScreenModel.setGamestone_position(6, 5);
+        gameScreenModel.setGamestone_position(7, 5);
+        Assert.assertEquals(false, gameScreenModel.win_condition());
+
+    }
+
 }
-//Welche Kacheln kommt es rein !!!ACHTUNG KACHEL POS BEGINNT BEI 0 UND ENDET BEI 13!!!
-       /* findTilesPosition(300,450); //keine
-        findTilesPosition(160,220); //keine
-        findTilesPosition(600,550); // X Kaxhel Pos: 5 Y Kachel Pos: 12
-        findTilesPosition(700,400); // X Kaxhel Pos: 8 Y Kachel Pos: 8
-        findTilesPosition(800,200); // X Kaxhel Pos: 11 Y Kachel Pos: 2
-        //Welche Pixel sind welche Kacheln
-        findPixels(5,12);
-        findPixels(8,8);
-        findPixels(11,2);
-        Tuple abc = findTilesPosition(600,500);
-        System.out.println(abc.first + " " + abc.second );
-        Tuple y = findPixels(5,5);
-        System.out.println(y.first + " " + y.second);*/

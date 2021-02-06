@@ -8,14 +8,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -42,6 +38,8 @@ public class GameScreen implements Screen {
     private final Viewport viewport_;
     // Stage
     private final Stage stage_;
+    //multiplexer
+    private InputMultiplexer multiplexer;
     // SpriteBatch
     private final SpriteBatch sprite_batch_;
     // ShapeRenderer
@@ -49,29 +47,25 @@ public class GameScreen implements Screen {
     private final ShapeRenderer shape_renderer_;
     // Skin
     private final Skin skin_;
+    // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/graphics/Texture.html
+    private final Texture background_texture_;
     // Colors
-    private static final Color red_ = new Color(1.f, 0.f, 0.f, 1.f);
+    private static final Color red_ = new Color(1.f, 0.f, 0.f, 10.f);
     private static final Color green_ = new Color(0.f, 1.f, 0.f, 1.f);
-    private static final Color blue_ = new Color(0.f, 0.f, 1.f, 1.f);
+    private static final Color blue_ = new Color(0.f, 0.f, 1.f, 100.f);
+    //Player Input in Dialog
+    private TextField dialog_player_input1;
+    private TextField dialog_player_input2;
+    //Player Label
+    private Label player_label2;
+    //Openingrule
+    private int opening_rule;
+
+    Player[][] gamestone_positions;
     // grid dimensions
     private static final int grid_size_ = 15;
     private static final float padding = 100.f;
     private static final float line_width = 5.f;
-    //Count of tiles
-    private static final int grid_tiles = grid_size_ - 1;
-    //grid begin x
-    private static final float grid_x_min = 380.f + (line_width / 2);
-    //grid begin y
-    private static final float grid_y_min = 100.f + (line_width / 2);
-    //grid end x
-    private static final float grid_x_max = Gdx.graphics.getWidth() - grid_x_min;
-    //grid end y
-    private static final float grid_y_max = Gdx.graphics.getHeight() - grid_y_min;
-    //Width of grid
-    private static final float grid_width = Gdx.graphics.getWidth() - (2 * grid_x_min);
-    //dimensions of one tile
-    private static final float dimension_one_tile = grid_width / grid_tiles;
-    private Tuple<Integer> gamestone = null;
 
 
     public GameScreen(Gomoku parent) {
@@ -91,10 +85,11 @@ public class GameScreen implements Screen {
         stage_ = new Stage(viewport_, sprite_batch_);
         // initialize ShapeRenderer
         shape_renderer_ = new ShapeRenderer();
-        // initialize the Skin
-        skin_ = new Skin(Gdx.files.internal("glassy/skin/glassy-ui.json"));
+        // initialize the Skin //Shade UI can be used under the CC BY license.
+        //http://creativecommons.org/licenses/by/4.0/
+        skin_ = new Skin(Gdx.files.internal("ShadeUI/shadeui/uiskin.json"));
         // create switch to MainMenu button
-        Button menu_screen_button = new TextButton("LEAVE GAME", skin_, "small");
+        Button menu_screen_button = new TextButton("LEAVE GAME", skin_, "round"); // "small");
         menu_screen_button.setPosition(25.f, 25.f);
 
         // add InputListener to Button, and close app if Button is clicked
@@ -106,12 +101,41 @@ public class GameScreen implements Screen {
 
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                parent_.change_screen(ScreenEnum.MENU);
+                change_screen_to_menu();
             }
         });
 
         // add exit button to Stage
         stage_.addActor(menu_screen_button);
+
+        // create a Label with the Playersname string
+        Label player_label = new Label("Current Player:          ", skin_, "title");
+        player_label.setFontScale(1, 1);
+
+        player_label.setPosition(
+                (float) 10,
+                (float) 570
+        );
+        stage_.addActor(player_label);
+
+        player_label2 = new Label("                           ", skin_, "title");
+        player_label2.setScale(20f, 20f);
+        player_label2.setFontScale(1, 1);
+        player_label2.setPosition(
+                (float) 10,
+                (float) 500
+        );
+        stage_.addActor(player_label2);
+
+        // load background texture
+        background_texture_ = new Texture("texture/wood.jpg");
+
+    }
+
+    private void change_screen_to_menu() {
+        Player.ONE.setName("Player 1");
+        Player.TWO.setName("Player 2");
+        parent_.change_screen(ScreenEnum.MENU);
     }
 
 
@@ -141,7 +165,7 @@ public class GameScreen implements Screen {
      */
     @Override
     public void show() {
-        InputMultiplexer multiplexer = new InputMultiplexer();
+        multiplexer = new InputMultiplexer();
         Gdx.input.setInputProcessor(multiplexer);
 
         //Mouse click & game piece set
@@ -149,9 +173,30 @@ public class GameScreen implements Screen {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 if (button != Input.Buttons.LEFT || pointer > 0) return false;
-                Tuple tiles_position = gameScreenModel.findTilesPosition(screenX,Gdx.graphics.getHeight()-screenY);
-                if (tiles_position==null) return false;
-                gamestone = gameScreenModel.findPixels((int) tiles_position.first,(int) tiles_position.second);
+                Tuple tiles_position = gameScreenModel.findTilesPosition(screenX, Gdx.graphics.getHeight() - screenY);
+                if (tiles_position == null) return false;
+                boolean pos_free = gameScreenModel.setGamestone_position((int) tiles_position.first, (int) tiles_position.second);
+                if (!pos_free) {
+                    return false;
+                }
+
+                if (gameScreenModel.win_condition()==true){
+                    show_winner_dialog();
+
+                }else {
+
+                }
+
+                int c = gameScreenModel.handle_rules_after_gamestone();
+
+                switch (c){
+                    case 1:
+                        show_openingrule_dialog();
+                        break;
+                    case 2:
+                        show_change_player_colour_dialog();
+                        break;
+                }
 
                 return true;
             }
@@ -159,8 +204,112 @@ public class GameScreen implements Screen {
         });
 
         // InputProcessor for Stage
-        //Gdx.input.setInputProcessor(stage_);
         multiplexer.addProcessor(stage_);
+        //show Dialog
+        show_set_name_dialog();
+    }
+
+    private void show_change_player_colour_dialog() {
+        //show Colour change dialog
+        Dialog dialog = new Dialog("    Change colour?      ", skin_) {
+            protected void result(Object obj) {
+                boolean ya_no = (boolean) obj;
+                Gdx.input.setInputProcessor(multiplexer);
+                if (ya_no) {
+                    gameScreenModel.change_player_colour();
+                    gameScreenModel.change_player();
+                }
+            }
+
+        };
+        dialog.text(gameScreenModel.getCurrent_player().getName() + " Do you want to change your colour?");
+        dialog.button("Yes", true);
+        dialog.button("No", false);
+        dialog.show(stage_);
+
+        Gdx.input.setInputProcessor(stage_);
+
+    }
+
+    private void show_openingrule_dialog() {
+        //show Openingdialog
+        Dialog dialog = new Dialog("Openingrule", skin_) {
+            protected void result(Object obj) {
+                gameScreenModel.setOpening_rule((int) obj);
+                Gdx.input.setInputProcessor(multiplexer);
+                if (gameScreenModel.getOpening_rule() == 1) {
+                    gameScreenModel.change_player_colour();
+                }
+                //Openingrule 2 not neccesary beceause of else
+
+
+            }
+
+        };
+        dialog.text(gameScreenModel.getCurrent_player().getName() + " choose your option to continue: ");
+        dialog.button("Option 1", 1);
+        dialog.button("Option 2", 2);
+        dialog.button("Option 3", 3);
+        dialog.show(stage_);
+
+        Gdx.input.setInputProcessor(stage_);
+
+    }
+
+
+    private void show_set_name_dialog() {
+
+        //show Namedialog
+        Dialog dialog_name = new Dialog("Set your Playername", skin_) {
+            protected void result(Object obj) {
+                if ((boolean) obj) {
+                    Player.ONE.setName(dialog_player_input1.getText());
+                    Player.TWO.setName(dialog_player_input2.getText());
+
+                }
+                System.out.println(Player.ONE.getName() + "--------" + Player.TWO.getName());
+                System.out.println("result " + obj);
+                Gdx.input.setInputProcessor(multiplexer);
+            }
+        };
+
+        dialog_player_input1 = new TextField(Player.ONE.getName(), skin_);
+        dialog_name.text("Players Name: ");
+        dialog_name.button("OK", true);
+        dialog_name.button("Cancel", false);
+        dialog_name.key(Input.Keys.ENTER, true);
+        dialog_name.key(Input.Keys.ESCAPE, false);
+        dialog_name.getContentTable().row();
+        dialog_name.getContentTable().add(dialog_player_input1).width(135);
+
+        dialog_player_input2 = new TextField(Player.TWO.getName(), skin_);
+        dialog_name.getContentTable().row();
+        dialog_name.getContentTable().add(dialog_player_input2).width(135);
+        dialog_name.show(stage_);
+        stage_.setKeyboardFocus(dialog_player_input2);
+        stage_.unfocusAll();
+        Gdx.input.setInputProcessor(stage_);
+
+
+    }
+
+    private void show_winner_dialog() {
+        //show winner dialog
+        Dialog dialog = new Dialog("        Winner!         ", skin_) {
+            protected void result(Object obj) {
+                Gdx.input.setInputProcessor(multiplexer);
+                if ((boolean)obj) {
+                    change_screen_to_menu();
+                }else {
+
+                }
+            }
+        };
+        dialog.text(gameScreenModel.getCurrent_player().getName() + " has won!");
+        dialog.button("Back to Menu", true);
+        dialog.show(stage_);
+
+        Gdx.input.setInputProcessor(stage_);
     }
 
     /**
@@ -174,6 +323,13 @@ public class GameScreen implements Screen {
         // clear the client area (Screen) with the clear color (black)
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        // draw background graphic
+        // note: it is not necessary to use two SpriteBatch blocks
+        // the background rendering is separated from the ParticleEffect rendering
+        // for the sake of clarity
+        sprite_batch_.begin();
+        sprite_batch_.draw(background_texture_, 0, 0, viewport_.getScreenWidth(), viewport_.getScreenHeight());
+        sprite_batch_.end();
 
         // update camera
         camera_.update();
@@ -209,18 +365,42 @@ public class GameScreen implements Screen {
             );
         }
         shape_renderer_.end();
-        if (gamestone!=null) {
-            shape_renderer_.setColor(Color.WHITE);
-            shape_renderer_.begin(ShapeType.Filled);
-            shape_renderer_.circle(gamestone.first, gamestone.second, 10);
-            shape_renderer_.end();
-        }
+
+        gamestone_positions = gameScreenModel.getGamestone_positions();
+        visualize_gamestones(gamestone_positions);
+
+        player_label2.setText(gameScreenModel.getCurrent_player().getName());
+
         // update the Stage
         stage_.act(delta);
         // draw the Stage
         stage_.draw();
 
 
+    }
+    private void visualize_gamestones(Player[][] gamestone_positions) {
+        for (int x = 0; x < grid_size_; x++) {
+            for (int y = 0; y < grid_size_; y++) {
+                if (gamestone_positions[x][y] != null) {
+                    Tuple pixel = gameScreenModel.findPixels(x, y);
+                    Player p = gamestone_positions[x][y];
+                    setGamestone(p.getColour(), (int) pixel.first, (int) pixel.second);
+
+                }
+            }
+        }
+    }
+
+
+    private void setGamestone(Color colour, int x_pixel, int y_pixel) {
+        shape_renderer_.setColor(colour);
+        shape_renderer_.begin(ShapeType.Filled);
+        shape_renderer_.circle(x_pixel, y_pixel, 14);
+        shape_renderer_.end();
+    }
+
+    public GameScreenModel getGameScreenModel() {
+        return gameScreenModel;
     }
 
     /**
@@ -275,6 +455,7 @@ public class GameScreen implements Screen {
      */
     @Override
     public void dispose() {
+        background_texture_.dispose();
         skin_.dispose();
         stage_.dispose();
         sprite_batch_.dispose();

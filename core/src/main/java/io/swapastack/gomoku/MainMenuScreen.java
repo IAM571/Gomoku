@@ -68,7 +68,7 @@ public class MainMenuScreen implements Screen {
     // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/graphics/Texture.html
     private final Texture background_texture_;
     // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/audio/Music.html
-    private final Music background_music_;
+    //private final Music background_music_;
 
     // hostname / ip of server
     // e.g. localhost
@@ -103,7 +103,7 @@ public class MainMenuScreen implements Screen {
         particle_effect_.start();
         particle_effect_.setPosition(640.f, 460.f);
         // initialize the Skin
-        skin_ = new Skin(Gdx.files.internal("glassy/skin/glassy-ui.json"));
+        skin_ = new Skin(Gdx.files.internal("ShadeUI/shadeui/uiskin.json"));
 
         // create string for BitmapFont and Label creation
         String gomoku_string = "Gomoku - 五目並べ";
@@ -144,18 +144,18 @@ public class MainMenuScreen implements Screen {
         stage_.addActor(gomoku_label);
 
         // load background texture
-        background_texture_ = new Texture("space/space_scaled_hdready.png");
+        background_texture_ = new Texture("texture/wood.jpg");
 
         // load background music
         // note: every game should have some background music
         //       feel free to exchange the current wav with one of your own music files
         //       but you must have the right license for the music file
-        background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/piano_loop.wav"));
+       /* background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/Piano 2.mp3"));
         background_music_.setLooping(true);
-        background_music_.play();
+        background_music_.play();*/
 
         // create switch to GameScreen button
-        Button game_screen_button = new TextButton("START", skin_, "small");
+        Button game_screen_button = new TextButton("START", skin_, "round");
         game_screen_button.setPosition(
                 (float)client_area_dimensions.first / 2.f - game_screen_button.getWidth() / 2.f
                 , (float)client_area_dimensions.second / 2.f - 125.f
@@ -177,7 +177,7 @@ public class MainMenuScreen implements Screen {
 
 
         // create switch to Ranking button
-        Button ranking_screen_button = new TextButton("RANKING", skin_, "small");
+        Button ranking_screen_button = new TextButton("RANKING", skin_, "round");
         ranking_screen_button.setPosition(
                 (float)client_area_dimensions.first / 2.f - game_screen_button.getWidth() / 2.f
                 , (float)client_area_dimensions.second / 2.f - 200.f
@@ -198,7 +198,7 @@ public class MainMenuScreen implements Screen {
         stage_.addActor(ranking_screen_button);
 
         // create exit application button
-        Button exit_button = new TextButton("EXIT", skin_, "small");
+        Button exit_button = new TextButton("EXIT", skin_, "round");
         exit_button.setPosition(
                 (float)client_area_dimensions.first / 2.f - exit_button.getWidth() / 2.f
                 , (float)client_area_dimensions.second / 2.f - 275.f
@@ -219,7 +219,7 @@ public class MainMenuScreen implements Screen {
         stage_.addActor(exit_button);
 
         // create exit application button
-        Button simple_client_button = new TextButton("WSS TEST", skin_, "small");
+        Button simple_client_button = new TextButton("WSS TEST", skin_, "round");
         simple_client_button.setPosition(25.f, 25.f);
         // add InputListener to Button, and close app if Button is clicked
         simple_client_button.addListener(new InputListener(){
@@ -333,7 +333,7 @@ public class MainMenuScreen implements Screen {
      */
     @Override
     public void hide() {
-        background_music_.stop();
+       // background_music_.stop();
     }
 
     /**
@@ -342,7 +342,7 @@ public class MainMenuScreen implements Screen {
      */
     @Override
     public void dispose() {
-        background_music_.dispose();
+        //background_music_.dispose();
         background_texture_.dispose();
         bitmap_font_generator_.dispose();
         skin_.dispose();
