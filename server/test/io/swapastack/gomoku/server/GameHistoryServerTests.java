@@ -395,15 +395,15 @@ public class GameHistoryServerTests {
 
         HistoryAll history_all = gson.fromJson(test_client.messages_received.poll(), HistoryAll.class);
 
-        assert(history_all.history.get(0).playerOneName.equals("Hubert"));
-        assert(history_all.history.get(0).playerTwoName.equals("Helga"));
-        assert(history_all.history.get(0).playerOneWinner == true);
-        assert(history_all.history.get(0).playerTwoWinner == false);
+        assert(history_all.history.get(6).playerOneName.equals("Hubert"));
+        assert(history_all.history.get(6).playerTwoName.equals("Helga"));
+        assert(history_all.history.get(6).playerOneWinner == true);
+        assert(history_all.history.get(6).playerTwoWinner == false);
 
-        assert(history_all.history.get(1).playerOneName.equals("Anton"));
-        assert(history_all.history.get(1).playerTwoName.equals("Anna"));
-        assert(history_all.history.get(1).playerOneWinner == false);
-        assert(history_all.history.get(1).playerTwoWinner == true);
+        assert(history_all.history.get(7).playerOneName.equals("Anton"));
+        assert(history_all.history.get(7).playerTwoName.equals("Anna"));
+        assert(history_all.history.get(7).playerOneWinner == false);
+        assert(history_all.history.get(7).playerTwoWinner == true);
 
         test_client.close();
 

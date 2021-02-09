@@ -1,6 +1,9 @@
 package io.swapastack.gomoku;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -16,11 +19,11 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.badlogic.gdx.scenes.scene2d.ui.List;
 
 import java.net.URI;
 import java.util.ArrayList;
-
+import java.util.Collection;
+import java.util.Map;
 
 
 public class RankingScreen implements Screen {
@@ -44,7 +47,7 @@ public class RankingScreen implements Screen {
         // initialize OrthographicCamera with current screen size
         // e.g. OrthographicCamera(1280.f, 720.f)
         Tuple<Integer> client_area_dimensions = parent_.get_window_dimensions();
-        camera_ = new OrthographicCamera((float)client_area_dimensions.first, (float)client_area_dimensions.second);
+        camera_ = new OrthographicCamera((float) client_area_dimensions.first, (float) client_area_dimensions.second);
         // initialize ScreenViewport with the OrthographicCamera created above
         viewport_ = new ScreenViewport(camera_);
         // initialize SpriteBatch
@@ -93,8 +96,8 @@ public class RankingScreen implements Screen {
         Label gomoku_label = new Label(gomoku_string, japanese_latin_label_style);
         gomoku_label.setFontScale(1, 1);
         gomoku_label.setPosition(
-                (float)client_area_dimensions.first / 2.f - gomoku_label.getWidth() / 2.f
-                , (float)client_area_dimensions.second / 2.f - gomoku_label.getHeight() / 2.f
+                (float) client_area_dimensions.first / 2.f - gomoku_label.getWidth() / 2.f
+                , (float) client_area_dimensions.second / 2.f - gomoku_label.getHeight() / 2.f+200.f
         );
 
         // add main menu title string Label to Stage
@@ -110,66 +113,91 @@ public class RankingScreen implements Screen {
 
         // create leave Ranking button
         Button leave_ranking_button = new TextButton("Leave Ranking", skin_, "round"); // "small");
-        leave_ranking_button.setPosition(25.f,25.f);
+        leave_ranking_button.setPosition(25.f, 25.f);
         // add InputListener to Button, and close app if B utton is clicked
-        leave_ranking_button.addListener(new InputListener(){
+        leave_ranking_button.addListener(new InputListener() {
             @Override
-            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 return true;
             }
+
             @Override
-            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 client.close();
                 parent_.change_screen(ScreenEnum.MENU);
 
             }
         });
+        try {
+            client = new SimpleClient(new URI(String.format("ws://%s:%d", MainMenuScreen.host, MainMenuScreen.port)));
+            client.connect();
+            Thread.sleep(500);
+            client.send_history_get_all();
+            Thread.sleep(500);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
 
-        list = new List<String>(skin_);
-        list.setItems(ranking_list().toArray());
-        list.setPosition(570.f,200.f);
+        list = new List<String>(skin_, "dimmed");
+        list.setItems(ranking_list(client.getPlayerAndScoreMap()).toArray());
 
+
+        ScrollPane scrollPane = new ScrollPane(list);
+        scrollPane.setSize(260, 300);
+        scrollPane.setPosition((float) client_area_dimensions.first / 2.f - scrollPane.getWidth() / 2.f
+                , (float) client_area_dimensions.second / 2.f - scrollPane.getHeight() / 2.f);
 
         // create Reload button
         Button winner_list_button = new TextButton("Reload", skin_, "round"); // "small");
-        winner_list_button.setPosition(570.f,250.f);
+        winner_list_button.setPosition(570.f, 150.f);
         // add InputListener to Button, and close app if Button is clicked
-        winner_list_button.addListener(new InputListener(){
+        winner_list_button.addListener(new InputListener() {
             @Override
-            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 return true;
             }
+
             @Override
-            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 client.send_history_get_all();
-                ranking_list();
+                try {
+                    Thread.sleep(500);
+                    list.setItems(ranking_list(client.getPlayerAndScoreMap()).toArray());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
         });
 
         // add exit button to Stage
         stage_.addActor(leave_ranking_button);
         stage_.addActor(winner_list_button);
-        stage_.addActor(list);
+        stage_.addActor(scrollPane);
 
-        try {
-            client = new SimpleClient(new URI(String.format("ws://%s:%d", MainMenuScreen.host, MainMenuScreen.port)));
-            client.connect();
-            Thread.sleep(1000);
-            client.send_history_get_all();
 
-        }
-        catch (Exception exception) {
-            exception.printStackTrace();
-        }
 
     }
 
-    public ArrayList ranking_list(){
-        ArrayList winner_list = new ArrayList();
-        winner_list.add("King");
-        winner_list.add("Ali");
-        winner_list.add("Mahmood");
-        System.out.println(winner_list.toArray()[0]);
+    public ArrayList<String> ranking_list(Map<String, PlayerAndScore> playerAndScoreMap) {
+        ArrayList<String> winner_list = new ArrayList();
+        if (playerAndScoreMap != null) {
+            Collection<PlayerAndScore> playerAndScoreCollection =  playerAndScoreMap.values();
+            PlayerAndScore[] playerAndScoreArray = playerAndScoreCollection.toArray(new PlayerAndScore[playerAndScoreCollection.size()]);
+            for (int i = 0; i < playerAndScoreArray.length; i++) {
+                for (int j = 0; j < playerAndScoreArray.length; j++) {
+                    if (playerAndScoreArray[i].getScore() > playerAndScoreArray[j].getScore()) {
+                        PlayerAndScore temp = playerAndScoreArray[i];
+                        playerAndScoreArray[i] = playerAndScoreArray[j];
+                        playerAndScoreArray[j] = temp;
+                    }
+                }
+            }
+
+            for (int i = 1; i <= playerAndScoreArray.length; i++) {
+                winner_list.add(i + ". " + playerAndScoreArray[i - 1].getPlayer_name() + " | " + playerAndScoreArray[i-1].getScore());
+            }
+        }
         return winner_list;
     }
 
@@ -234,10 +262,10 @@ public class RankingScreen implements Screen {
     /**
      * This method gets called after a window resize.
      *
-     * @param width new window width
+     * @param width  new window width
      * @param height new window height
-     * @see ApplicationListener#resize(int, int)
      * @author Dennis Jehle
+     * @see ApplicationListener#resize(int, int)
      */
     @Override
     public void resize(int width, int height) {
@@ -247,31 +275,36 @@ public class RankingScreen implements Screen {
     /**
      * This method gets called if the application lost focus.
      *
-     * @see ApplicationListener#pause()
      * @author Dennis Jehle
+     * @see ApplicationListener#pause()
      */
     @Override
-    public void pause() {}
+    public void pause() {
+    }
 
     /**
      * This method gets called if the application regained focus.
      *
-     * @see ApplicationListener#resume()
      * @author Dennis Jehle
+     * @see ApplicationListener#resume()
      */
     @Override
-    public void resume() {}
+    public void resume() {
+    }
 
     /**
      * Called when this screen is no longer the current screen for a {@link Game}.
+     *
      * @author Dennis Jehle
      */
     @Override
-    public void hide() { background_music_.stop();
+    public void hide() {
+        background_music_.stop();
     }
 
     /**
      * Called when this screen should release all resources.
+     *
      * @author Dennis Jehle
      */
     @Override

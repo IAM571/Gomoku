@@ -6,6 +6,9 @@ import io.swapastack.gomoku.shared.*;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.java_websocket.client.WebSocketClient;
@@ -31,6 +34,7 @@ public class SimpleClient extends WebSocketClient {
     // see: https://github.com/google/gson/blob/master/UserGuide.md#TOC-Serializing-and-Deserializing-Generic-Types
     private final Gson gson_;
     private UUID userID;
+    private Map<String, PlayerAndScore> playerAndScoreMap;
     /**
      * This is the constructor of the SimpleClient class.
      *
@@ -93,14 +97,49 @@ public class SimpleClient extends WebSocketClient {
                     break;
                 case HistoryAll:
                     HistoryAll historyAll = gson_.fromJson(message, HistoryAll.class);
-
+                    calculate_scores(historyAll.history);
                     System.out.println(historyAll.history);
+                    break;
             }
         }
         catch (JsonSyntaxException jse) {
             close(); // see class description
         }
 
+    }
+
+    /**
+     * @param historyAll
+     */
+    private void calculate_scores(ArrayList<History> historyAll){
+        Map<String, PlayerAndScore>  scoreMap = new HashMap<>();
+        for(History  history : historyAll){
+            if (scoreMap.containsKey(history.playerOneName)){
+                PlayerAndScore playerAndScore = scoreMap.get(history.playerOneName);
+                playerAndScore.setScore(calculate_score(playerAndScore.getScore(),history.playerOneWinner));
+                scoreMap.put(history.playerOneName, playerAndScore);
+            } else {
+                scoreMap.put(history.playerOneName,
+                        new PlayerAndScore(history.playerOneName,calculate_score(0,history.playerOneWinner)));
+            }
+            if (scoreMap.containsKey(history.playerTwoName)){
+                PlayerAndScore playerAndScore = scoreMap.get(history.playerTwoName);
+                playerAndScore.setScore(calculate_score(playerAndScore.getScore(),history.playerTwoWinner));
+                scoreMap.put(history.playerTwoName, playerAndScore);
+            } else {
+                scoreMap.put(history.playerTwoName,
+                        new PlayerAndScore(history.playerTwoName,calculate_score(0,history.playerTwoWinner)));
+            }
+        }
+
+        playerAndScoreMap= scoreMap;
+    }
+
+    private int calculate_score(int score, boolean game){
+        if (game){
+            score+=3;
+        }
+        return score;
     }
 
     public void send_history_push(String playerOneName,String playerTwoName, boolean playerOneWinner,boolean playerTwoWinner){
@@ -146,5 +185,9 @@ public class SimpleClient extends WebSocketClient {
     @Override
     public void onError(Exception exception) {
         System.err.println("an error occurred:" + exception);
+    }
+
+    public Map<String, PlayerAndScore> getPlayerAndScoreMap() {
+        return playerAndScoreMap;
     }
 }

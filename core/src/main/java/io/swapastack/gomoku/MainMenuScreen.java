@@ -179,7 +179,7 @@ public class MainMenuScreen implements Screen {
         // create switch to Ranking button
         Button ranking_screen_button = new TextButton("RANKING", skin_, "round");
         ranking_screen_button.setPosition(
-                (float)client_area_dimensions.first / 2.f - game_screen_button.getWidth() / 2.f
+                (float)client_area_dimensions.first / 2.f - ranking_screen_button.getWidth() / 2.f
                 , (float)client_area_dimensions.second / 2.f - 200.f
         );
         // add InputListener to Button and switch to Rankingscreen if Button is clicked

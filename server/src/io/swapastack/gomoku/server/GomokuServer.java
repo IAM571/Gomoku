@@ -105,8 +105,13 @@ public class GomokuServer extends WebSocketServer {
         gson_ = new Gson();
         legal_user_ids_ = new ArrayList<UUID>();
         history_store_ = new ArrayList<History>();
-        history_store_.add(new History("Player One","PLayer two",true,false));
-        history_store_.add(new History("Player One","PLayer two",true,false));
+        history_store_.add(new History("Player 1","Player 2",true,false));
+        history_store_.add(new History("Player 3","Player 4",true,false));
+        history_store_.add(new History("Player 5","Player 6",true,false));
+        history_store_.add(new History("Player 7","Player 8",true,false));
+        history_store_.add(new History("Player 9","Player 10",true,false));
+        history_store_.add(new History("Player 1","Player 2",true,false));
+
     }
 
     /**
