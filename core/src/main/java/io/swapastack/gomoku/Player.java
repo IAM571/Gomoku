@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import javax.naming.Name;
 
 public enum Player {
-    ONE(Color.WHITE, "Player 1"), TWO(Color.CORAL, "Player 2");
+    ONE(Color.PINK , "Player 1"), TWO(Color.CHARTREUSE , "Player 2");
 
     Player(final Color colour, final String name) {
         this.colour = colour;

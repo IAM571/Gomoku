@@ -12,37 +12,35 @@ public class GameTest {
         Assert.assertNull(ergebnis);
 
         Tuple ergebnis1 = gameScreenModel.findTilesPosition(600,550);
-        Assert.assertEquals(5,ergebnis1.first);
+        Assert.assertEquals(6,ergebnis1.first);
         Assert.assertEquals(12,ergebnis1.second);
 
         Tuple ergebnis2 = gameScreenModel.findTilesPosition(800,200);
         Assert.assertEquals(11,ergebnis2.first);
-        Assert.assertEquals(2,ergebnis2.second);
+        Assert.assertEquals(3,ergebnis2.second);
     }
 
     @Test
     public void findPixelFromTiles (){
         GameScreenModel gameScreenModel = new GameScreenModel();
         Tuple ergebnis = gameScreenModel.findPixels(3,4);
-
-        Assert.assertEquals(511,ergebnis.first);
-        Assert.assertEquals(268,ergebnis.second);
+        Assert.assertEquals(492,ergebnis.first);
+        Assert.assertEquals(249,ergebnis.second);
 
         Tuple ergebnis1 = gameScreenModel.findPixels(0,13);
-        Assert.assertEquals(400,ergebnis1.first);
-        Assert.assertEquals(599,ergebnis1.second);
+        Assert.assertEquals(382,ergebnis1.first);
+        Assert.assertEquals(580,ergebnis1.second);
 
         Tuple ergebnis2 = gameScreenModel.findPixels(13,7);
-        Assert.assertEquals(879,ergebnis2.first);
-        Assert.assertEquals(378,ergebnis2.second);
+        Assert.assertEquals(860,ergebnis2.first);
+        Assert.assertEquals(360,ergebnis2.second);
 
     }
     @Test
     public void player_change (){
         GameScreenModel gameScreenModel = new GameScreenModel();
         Assert.assertEquals(Player.ONE,gameScreenModel.getCurrent_player());
-        gameScreenModel.setGamestone_position(1,1);
-        gameScreenModel.handle_rules_after_gamestone();
+        gameScreenModel.change_player();
         Assert.assertEquals(Player.TWO,gameScreenModel.getCurrent_player());
 
     }
@@ -65,7 +63,7 @@ public class GameTest {
         gameScreenModel.setGamestone_position(2,2);
         int temp2 = gameScreenModel.handle_rules_after_gamestone();
         Assert.assertEquals(4, temp1);
-        Assert.assertEquals(1, temp2);
+        Assert.assertEquals(4, temp2);
     }
     //Test openingrule 2
     @Test
@@ -83,6 +81,8 @@ public class GameTest {
         gameScreenModel.setGamestone_position(1, 2);
         gameScreenModel.handle_rules_after_gamestone();
         gameScreenModel.setGamestone_position(2, 2);
+        gameScreenModel.handle_rules_after_gamestone();
+        gameScreenModel.setGamestone_position(2, 5);
         gameScreenModel.setOpening_rule(3);
         Assert.assertEquals(Player.TWO, gameScreenModel.getCurrent_player());
         String name1 = Player.ONE.getName();

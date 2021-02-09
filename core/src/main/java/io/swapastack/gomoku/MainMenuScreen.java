@@ -68,7 +68,7 @@ public class MainMenuScreen implements Screen {
     // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/graphics/Texture.html
     private final Texture background_texture_;
     // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/audio/Music.html
-    //private final Music background_music_;
+    private final Music background_music_;
 
     // hostname / ip of server
     // e.g. localhost
@@ -150,9 +150,9 @@ public class MainMenuScreen implements Screen {
         // note: every game should have some background music
         //       feel free to exchange the current wav with one of your own music files
         //       but you must have the right license for the music file
-       /* background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/Piano 2.mp3"));
+        background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/fallout.mp3"));
         background_music_.setLooping(true);
-        background_music_.play();*/
+        background_music_.play();
 
         // create switch to GameScreen button
         Button game_screen_button = new TextButton("START", skin_, "round");
@@ -333,7 +333,7 @@ public class MainMenuScreen implements Screen {
      */
     @Override
     public void hide() {
-       // background_music_.stop();
+       background_music_.stop();
     }
 
     /**
@@ -342,7 +342,7 @@ public class MainMenuScreen implements Screen {
      */
     @Override
     public void dispose() {
-        //background_music_.dispose();
+        background_music_.dispose();
         background_texture_.dispose();
         bitmap_font_generator_.dispose();
         skin_.dispose();

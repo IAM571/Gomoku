@@ -1,6 +1,7 @@
 package io.swapastack.gomoku;
 
 import com.badlogic.gdx.*;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -14,6 +15,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import java.net.URI;
 
 /**
  * This is the GameScreen class.
@@ -50,9 +53,10 @@ public class GameScreen implements Screen {
     // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/graphics/Texture.html
     private final Texture background_texture_;
     // Colors
-    private static final Color red_ = new Color(1.f, 0.f, 0.f, 10.f);
-    private static final Color green_ = new Color(0.f, 1.f, 0.f, 1.f);
-    private static final Color blue_ = new Color(0.f, 0.f, 1.f, 100.f);
+    private static final Color white_ = new Color(1.f, 1.f, 1.f, 1.f);
+    private static final Color green_ = new Color(0.f, 100.f, 0.f, 1.f);
+    private static final Color blue_ = new Color(0.f, 0.f, 1.f, 1.f);
+    private static final Color red_ = new Color(100.f, 0.f, 0.f, 1.f);
     //Player Input in Dialog
     private TextField dialog_player_input1;
     private TextField dialog_player_input2;
@@ -60,7 +64,8 @@ public class GameScreen implements Screen {
     private Label player_label2;
     //Openingrule
     private int opening_rule;
-
+    //background Music
+    private final Music background_music_;
     Player[][] gamestone_positions;
     // grid dimensions
     private static final int grid_size_ = 15;
@@ -108,6 +113,13 @@ public class GameScreen implements Screen {
         // add exit button to Stage
         stage_.addActor(menu_screen_button);
 
+        // load background music
+        // good Beat for an intensive game --> you feel the Beat means you feel the Game
+        background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/Original_Beat.mp3"));
+        background_music_.setLooping(true);
+        background_music_.play();
+
+
         // create a Label with the Playersname string
         Label player_label = new Label("Current Player:          ", skin_, "title");
         player_label.setFontScale(1, 1);
@@ -127,9 +139,56 @@ public class GameScreen implements Screen {
         );
         stage_.addActor(player_label2);
 
+        // create a Label with the Playersname string
+        Label swap2_rule = new Label("          \n " +
+                                    "   SWAP2 Openingrule                             \n" +
+                                    "                                                 \n" +
+                                    "   1) First Player set two of your own stones &  \n" +
+                                    "      one of the opponent.                       \n" +
+                                    "   2) Second Player choose between               \n" +
+                                    "      these three Option:                        \n" +
+                                    "      1. You change the colour with              \n" +
+                                    "         your opponent                           \n" +
+                                    "      2. You set your colour &                   \n" +
+                                    "          play with them                         \n" +
+                                    "      3. You set one stone in your colour,       \n" +
+                                    "         one in the opponents colour             \n" +
+                                    "         and let your opponent choose if         \n" +
+                                    "         he wants to change colours.             \n" +
+                                    "                          ",
+                skin_, "subtitle");
+        swap2_rule.setFontScale(1, 1);
+
+        swap2_rule.setPosition(
+                (float) 930,
+                (float) 410
+        );
+        stage_.addActor(swap2_rule);
+
         // load background texture
         background_texture_ = new Texture("texture/wood.jpg");
+    }
 
+    private void send_winner_history(){
+        try {
+            SimpleClient client = new SimpleClient(new URI(String.format("ws://%s:%d", MainMenuScreen.host, MainMenuScreen.port)));
+            client.connect();
+            Thread.sleep(1000);
+            client.send_history_push(gameScreenModel.getCurrent_player().getName(),
+                    not_current_player().getName(),true,false);
+            client.close();
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private Player not_current_player(){
+        if (gameScreenModel.getCurrent_player()==Player.ONE){
+            return Player.TWO;
+        }else {
+            return Player.ONE;
+        }
     }
 
     private void change_screen_to_menu() {
@@ -180,17 +239,16 @@ public class GameScreen implements Screen {
                     return false;
                 }
 
-                if (gameScreenModel.win_condition()==true){
+                if (gameScreenModel.win_condition()){
                     show_winner_dialog();
-
-                }else {
-
+                    send_winner_history();
                 }
 
                 int c = gameScreenModel.handle_rules_after_gamestone();
 
                 switch (c){
                     case 1:
+                        gameScreenModel.change_player();
                         show_openingrule_dialog();
                         break;
                     case 2:
@@ -353,15 +411,15 @@ public class GameScreen implements Screen {
                     top_left_x + i * offset, padding + column_height
                     , top_left_x + i * offset, padding
                     , line_width
-                    , mix(green_, blue_, fraction)
-                    , mix(blue_, green_, fraction)
+                    , mix(red_, red_, fraction)
+                    , mix(red_, white_, fraction)
             );
             shape_renderer_.rectLine(
                     top_left_x, padding + column_height - i * offset
                     , top_left_x + row_width, padding + column_height - i * offset
                     , line_width
-                    , mix(green_, blue_, fraction)
-                    , mix(blue_, green_, fraction)
+                    , mix(red_, red_, fraction)
+                    , mix(red_, white_, fraction)
             );
         }
         shape_renderer_.end();
@@ -445,7 +503,7 @@ public class GameScreen implements Screen {
      */
     @Override
     public void hide() {
-
+        background_music_.stop();
     }
 
     /**
@@ -455,6 +513,7 @@ public class GameScreen implements Screen {
      */
     @Override
     public void dispose() {
+        background_music_.dispose();
         background_texture_.dispose();
         skin_.dispose();
         stage_.dispose();

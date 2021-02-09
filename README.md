@@ -51,4 +51,4 @@ See: [Java version history - Wikipedia](https://en.wikipedia.org/wiki/Java_versi
 
 If you want to use IntelliJ you can use the Community Edition, but it is also possible to get the Ultimate Edition for free as a student.
 
-If you are using IntelliJ and want to run the DesktopLauncher and the GomokuServer with one click on the 'Run' button, then you can create a compound launcher. Have a look at the **IntelliJ_Compound.md** file located in the **help** folder.
+If you are using IntelliJ and want to run the DesktopLauncher and the io.swapastack.gomoku.server.GomokuServer with one click on the 'Run' button, then you can create a compound launcher. Have a look at the **IntelliJ_Compound.md** file located in the **help** folder.

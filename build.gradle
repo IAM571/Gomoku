@@ -40,6 +40,8 @@ allprojects {
     }
 
     dependencies {
+        implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+
         // https://mvnrepository.com/artifact/com.google.code.gson/gson
         compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
         // https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket

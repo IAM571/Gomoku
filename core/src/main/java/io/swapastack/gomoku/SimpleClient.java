@@ -1,10 +1,12 @@
 package io.swapastack.gomoku;
 
 import com.google.gson.Gson;
-import io.swapastack.gomoku.shared.TestMessage;
+import com.google.gson.JsonSyntaxException;
+import io.swapastack.gomoku.shared.*;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -28,7 +30,7 @@ public class SimpleClient extends WebSocketClient {
     // see: https://github.com/google/gson
     // see: https://github.com/google/gson/blob/master/UserGuide.md#TOC-Serializing-and-Deserializing-Generic-Types
     private final Gson gson_;
-
+    private UUID userID;
     /**
      * This is the constructor of the SimpleClient class.
      *
@@ -50,7 +52,7 @@ public class SimpleClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshake_data) {
         // create new TestMassage Java object
-        TestMessage message = new TestMessage("Mario", "Hello, it is me.");
+        HelloServer message = new HelloServer();
         // create JSON String from TestMessage Java object
         String test_message = gson_.toJson(message);
         // send JSON encoded test message as String to the connected WebSocket server
@@ -81,8 +83,47 @@ public class SimpleClient extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         System.out.println("received message: " + message);
+
+        try {
+            ExtractorMessage extractorMessage = gson_.fromJson(message, ExtractorMessage.class);
+            switch (extractorMessage.messageType) {
+                case WelcomeClient:
+                    WelcomeClient welcomeClient = gson_.fromJson(message, WelcomeClient.class);
+                    userID = welcomeClient.userId;
+                    break;
+                case HistoryAll:
+                    HistoryAll historyAll = gson_.fromJson(message, HistoryAll.class);
+
+                    System.out.println(historyAll.history);
+            }
+        }
+        catch (JsonSyntaxException jse) {
+            close(); // see class description
+        }
+
     }
 
+    public void send_history_push(String playerOneName,String playerTwoName, boolean playerOneWinner,boolean playerTwoWinner){
+        // create new TestMassage Java object
+        HistoryPush message = new HistoryPush(userID,playerOneName,playerTwoName,playerOneWinner,playerTwoWinner);
+        // create JSON String from TestMessage Java object
+        String history_push_message = gson_.toJson(message);
+        // send JSON encoded test message as String to the connected WebSocket server
+        send(history_push_message);
+        // 'debug' output
+        System.out.println("Send History Push");
+    }
+
+    public void send_history_get_all(){
+        // create new TestMassage Java object
+        HistoryGetAll message = new HistoryGetAll(userID);
+        // create JSON String from TestMessage Java object
+        String history_get_all = gson_.toJson(message);
+        // send JSON encoded test message as String to the connected WebSocket server
+        send(history_get_all);
+        // 'debug' output
+        System.out.println("Send History get All");
+    }
     /**
      * This method is called if the WebSocketServer send a binary message to the client.
      * note: This method is not necessary for this project, because the network standard

@@ -16,8 +16,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.sun.org.apache.xml.internal.utils.res.XResources_zh_CN;
-import org.java_websocket.client.WebSocketClient;
 import com.badlogic.gdx.scenes.scene2d.ui.List;
 
 import java.net.URI;
@@ -36,9 +34,9 @@ public class RankingScreen implements Screen {
     private final Skin skin_;
     private final FreeTypeFontGenerator bitmap_font_generator_;
     private final Texture background_texture_;
-    //private final Music background_music_;
-    public String winner;
+    private final Music background_music_;
     public List list;
+    private SimpleClient client;
 
     public RankingScreen(Gomoku parent) {
         // store reference to parent class
@@ -106,9 +104,9 @@ public class RankingScreen implements Screen {
         // note: every game should have some background music
         //       feel free to exchange the current wav with one of your own music files
         //       but you must have the right license for the music file
-        /*background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/piano_loop.wav"));
+        background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/fallout.mp3"));
         background_music_.setLooping(true);
-        background_music_.play();*/
+        background_music_.play();
 
         // create leave Ranking button
         Button leave_ranking_button = new TextButton("Leave Ranking", skin_, "round"); // "small");
@@ -121,6 +119,7 @@ public class RankingScreen implements Screen {
             }
             @Override
             public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                client.close();
                 parent_.change_screen(ScreenEnum.MENU);
 
             }
@@ -131,8 +130,8 @@ public class RankingScreen implements Screen {
         list.setPosition(570.f,200.f);
 
 
-        // create leave Ranking button
-        Button winner_list_button = new TextButton("Winner", skin_, "round"); // "small");
+        // create Reload button
+        Button winner_list_button = new TextButton("Reload", skin_, "round"); // "small");
         winner_list_button.setPosition(570.f,250.f);
         // add InputListener to Button, and close app if Button is clicked
         winner_list_button.addListener(new InputListener(){
@@ -142,6 +141,7 @@ public class RankingScreen implements Screen {
             }
             @Override
             public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                client.send_history_get_all();
                 ranking_list();
             }
         });
@@ -150,6 +150,17 @@ public class RankingScreen implements Screen {
         stage_.addActor(leave_ranking_button);
         stage_.addActor(winner_list_button);
         stage_.addActor(list);
+
+        try {
+            client = new SimpleClient(new URI(String.format("ws://%s:%d", MainMenuScreen.host, MainMenuScreen.port)));
+            client.connect();
+            Thread.sleep(1000);
+            client.send_history_get_all();
+
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
 
     }
 
@@ -215,6 +226,8 @@ public class RankingScreen implements Screen {
         stage_.act(delta);
         // draw the Stage
         stage_.draw();
+
+
     }
 
 
@@ -254,7 +267,7 @@ public class RankingScreen implements Screen {
      * @author Dennis Jehle
      */
     @Override
-    public void hide() { //background_music_.stop();
+    public void hide() { background_music_.stop();
     }
 
     /**
@@ -263,7 +276,7 @@ public class RankingScreen implements Screen {
      */
     @Override
     public void dispose() {
-        //background_music_.dispose();
+        background_music_.dispose();
         background_texture_.dispose();
         bitmap_font_generator_.dispose();
         skin_.dispose();

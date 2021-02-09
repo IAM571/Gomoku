@@ -36,7 +36,7 @@ Now the Compound Luncher is ready.
 
 ![Screenshot 09](screenshot_intellij_compound_09.png)
 
-Click on the green 'Run' icon to run the 'DesktopLauncher' and 'GomokuServer'.
+Click on the green 'Run' icon to run the 'DesktopLauncher' and 'io.swapastack.gomoku.server.GomokuServer'.
 
 
 

@@ -36,7 +36,7 @@ public class GameScreenModel {
         current_player = Player.ONE;
         gamestone_positions = new Player[grid_size_][grid_size_];
         counter = 1;
-        opening_rule=0;
+        opening_rule = 0;
     }
 
     public Tuple findTilesPosition(int xPosMouseClick, int yPosMouseClick) {
@@ -94,7 +94,6 @@ public class GameScreenModel {
     }
 
 
-
     public void change_player() {
         if (this.getCurrent_player() == Player.ONE) {
             this.setCurrent_player(Player.TWO);
@@ -103,22 +102,31 @@ public class GameScreenModel {
         }
 
     }
-    public int handle_rules_after_gamestone(){
-        if (this.getCounter() == 3 || opening_rule == 3) {
-            if (this.getCounter()==3){
+
+    public int handle_rules_after_gamestone() {
+
+        if (this.getCounter() == 2) {
+            change_player();
+        }
+        if (this.getCounter() == 3) {
+            change_player_colour();
+        }
+        if (this.getCounter() == 4 || opening_rule == 3) {
+            if (this.getCounter() == 4) {
+                change_player();
+                change_player_colour();
                 return 1;
-            }
-            else if (this.getCounter()==4){
+            } else if (this.getCounter() == 5) {
                 this.change_player();
                 change_player_colour();
 
-            } else if (this.getCounter()==5){
+            } else if (this.getCounter() == 6) {
                 opening_rule = 0;
                 change_player_colour();
                 return 2;
             }
-        }else {
-            this.change_player();
+        } else {
+            change_player();
 
         }
         return 4;
@@ -139,53 +147,14 @@ public class GameScreenModel {
     }
 
 
-        //Winning condition
-        //vertical
-        public boolean win_condition () {
-            int gamestone_counter = 0;
-            for (int column = 0; column < grid_size_; column++) {
-                for (int row = 0; row < grid_size_; row++) {
-                    if (row < grid_size_-1) {
-                        if (gamestone_positions[column][row] == gamestone_positions[column][row+1] &&
-                                gamestone_positions[column][row] != null) {
-                            gamestone_counter++;
-                        } else {
-                            gamestone_counter = 0;
-                        }
-                        if (gamestone_counter == 4) {
-                            System.out.println(getCurrent_player() + "Hat gewonnen");
-                            return true;
-                        }
-                    }
-                }
-            }
-            //horizontal
-            gamestone_counter = 0;
+    //Winning condition
+    //vertical
+    public boolean win_condition() {
+        int gamestone_counter = 0;
+        for (int column = 0; column < grid_size_; column++) {
             for (int row = 0; row < grid_size_; row++) {
-                for (int column = 0; column < grid_size_; column++) {
-                    if (column < grid_size_-1) {
-                        if (gamestone_positions[column][row] == gamestone_positions[column+1][row] &&
-                                gamestone_positions[column][row] != null) {
-                            gamestone_counter++;
-                        } else {
-                            gamestone_counter = 0;
-                        }
-                        if (gamestone_counter == 4) {
-                            System.out.println(getCurrent_player() + "Hat gewonnen");
-                            return true;
-                        }
-                    }
-                }
-            }
-            //Diagonal
-            gamestone_counter=0;
-            int row =0;
-            int column = 0;
-            for (int i = 0; i <grid_size_ ; i++) {
-                row=i; column=0;
-                while(row < grid_size_-1 && column < grid_size_-1){
-
-                    if (gamestone_positions[column][row] == gamestone_positions[column+1][row+1] &&
+                if (row < grid_size_ - 1) {
+                    if (gamestone_positions[column][row] == gamestone_positions[column][row + 1] &&
                             gamestone_positions[column][row] != null) {
                         gamestone_counter++;
                     } else {
@@ -195,16 +164,15 @@ public class GameScreenModel {
                         System.out.println(getCurrent_player() + "Hat gewonnen");
                         return true;
                     }
-                    row++;
-                    column++;
-
                 }
             }
-            for (int i = 0; i <grid_size_ ; i++) {
-                column=i; row=0;
-                while(row < grid_size_-1 && column < grid_size_-1){
-
-                    if (gamestone_positions[column][row] == gamestone_positions[column+1][row+1] &&
+        }
+        //horizontal
+        gamestone_counter = 0;
+        for (int row = 0; row < grid_size_; row++) {
+            for (int column = 0; column < grid_size_; column++) {
+                if (column < grid_size_ - 1) {
+                    if (gamestone_positions[column][row] == gamestone_positions[column + 1][row] &&
                             gamestone_positions[column][row] != null) {
                         gamestone_counter++;
                     } else {
@@ -214,55 +182,97 @@ public class GameScreenModel {
                         System.out.println(getCurrent_player() + "Hat gewonnen");
                         return true;
                     }
-                    row++;
-                    column++;
-
                 }
             }
+        }
+        //Diagonal
+        gamestone_counter = 0;
+        int row = 0;
+        int column = 0;
+        for (int i = 0; i < grid_size_; i++) {
+            row = i;
+            column = 0;
+            while (row < grid_size_ - 1 && column < grid_size_ - 1) {
 
-            for (int i = grid_size_-1; i > 0 ; i--) {
-                row=i; column=0;
-                while(row > 0 && column < grid_size_-1){
-
-                    if (gamestone_positions[column][row] == gamestone_positions[column+1][row-1] &&
-                            gamestone_positions[column][row] != null) {
-                        gamestone_counter++;
-                    } else {
-                        gamestone_counter = 0;
-                    }
-                    if (gamestone_counter == 4) {
-                        System.out.println(getCurrent_player() + "Hat gewonnen");
-                        return true;
-                    }
-                    row--;
-                    column++;
-
+                if (gamestone_positions[column][row] == gamestone_positions[column + 1][row + 1] &&
+                        gamestone_positions[column][row] != null) {
+                    gamestone_counter++;
+                } else {
+                    gamestone_counter = 0;
                 }
-            }
-            for (int i = grid_size_-1; i > 0 ; i--) {
-                row=1; column=i;
-                while(row > 0 && column < grid_size_-1){
-
-                    if (gamestone_positions[column][row] == gamestone_positions[column+1][row-1] &&
-                            gamestone_positions[column][row] != null) {
-                        gamestone_counter++;
-                    } else {
-                        gamestone_counter = 0;
-                    }
-                    if (gamestone_counter == 4) {
-                        System.out.println(getCurrent_player() + "Hat gewonnen");
-                        return true;
-                    }
-                    row--;
-                    column++;
-
+                if (gamestone_counter == 4) {
+                    System.out.println(getCurrent_player() + "Hat gewonnen");
+                    return true;
                 }
-            }
+                row++;
+                column++;
 
-            return false;
+            }
+        }
+        for (int i = 0; i < grid_size_; i++) {
+            column = i;
+            row = 0;
+            while (row < grid_size_ - 1 && column < grid_size_ - 1) {
+
+                if (gamestone_positions[column][row] == gamestone_positions[column + 1][row + 1] &&
+                        gamestone_positions[column][row] != null) {
+                    gamestone_counter++;
+                } else {
+                    gamestone_counter = 0;
+                }
+                if (gamestone_counter == 4) {
+                    System.out.println(getCurrent_player() + "Hat gewonnen");
+                    return true;
+                }
+                row++;
+                column++;
+
+            }
         }
 
+        for (int i = grid_size_ - 1; i > 0; i--) {
+            row = i;
+            column = 0;
+            while (row > 0 && column < grid_size_ - 1) {
 
+                if (gamestone_positions[column][row] == gamestone_positions[column + 1][row - 1] &&
+                        gamestone_positions[column][row] != null) {
+                    gamestone_counter++;
+                } else {
+                    gamestone_counter = 0;
+                }
+                if (gamestone_counter == 4) {
+                    System.out.println(getCurrent_player() + "Hat gewonnen");
+                    return true;
+                }
+                row--;
+                column++;
+
+            }
+        }
+        for (int i = grid_size_ - 1; i > 0; i--) {
+            row = 1;
+            column = i;
+            while (row > 0 && column < grid_size_ - 1) {
+
+                if (gamestone_positions[column][row] == gamestone_positions[column + 1][row - 1] &&
+                        gamestone_positions[column][row] != null) {
+                    gamestone_counter++;
+                } else {
+                    gamestone_counter = 0;
+                }
+                if (gamestone_counter == 4) {
+                    System.out.println(getCurrent_player() + "Hat gewonnen");
+                    return true;
+                }
+                row--;
+                column++;
+
+            }
+        }
+
+        return false;
+    }
 
 
     public Player getCurrent_player() {
