@@ -154,6 +154,7 @@ public class RankingScreen implements Screen {
         list.setItems(ranking_list(client.getPlayerAndScoreMap()).toArray());
 
         //Die Liste wird dem ScrollPane übergeben zur besseren Darstellung.
+        //Inspiriert von: https://www.reddit.com/r/libgdx/comments/5ln5gs/how_do_i_use_scrollpane/
         ScrollPane scrollPane = new ScrollPane(list);
         scrollPane.setSize(260, 300);
         scrollPane.setPosition((float) client_area_dimensions.first / 2.f - scrollPane.getWidth() / 2.f
@@ -190,6 +191,7 @@ public class RankingScreen implements Screen {
 
 
     }
+    //HashMap https://www.w3schools.com/java/java_hashmap.asp
     //Der Namen- und Punkte Eintrag für das Ranking
     //Es wird eine Arraylist erstellt und eine Map. Der vorteil einer Arraylist gegenüber einem Array ist, dass durch
     //die add dunkrion immer belieibig die Liste erweitert werden kann ebenso keine vordefinierte größe nötog ist, was in
