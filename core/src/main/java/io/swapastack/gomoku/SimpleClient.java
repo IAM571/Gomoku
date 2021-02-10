@@ -24,7 +24,7 @@ import org.java_websocket.handshake.ServerHandshake;
  *
  * note: this client could be used to implement the network standard document.
  *
- * @author Dennis Jehle
+ * @author Dennis Jehle & Ibtsam Ali Mahmood
  */
 public class SimpleClient extends WebSocketClient {
 
@@ -110,6 +110,9 @@ public class SimpleClient extends WebSocketClient {
 
     /**
      * @param historyAll
+     * Hier wird aus den Spielverläufen eine Scoreliste erstellt.
+     * Der Spieler und dessen Score wird hier berechnet. Bei einem Sieg erhält man 3 Punkte und bei einer Niederlage
+     * keinen. Über die Map werden die zwei Werte eingespeichert.
      */
     private void calculate_scores(ArrayList<History> historyAll){
         Map<String, PlayerAndScore>  scoreMap = new HashMap<>();
@@ -142,6 +145,13 @@ public class SimpleClient extends WebSocketClient {
         return score;
     }
 
+    /**
+     * Die gesamte Spielhistorie wird gesendet.
+     * @param playerOneName
+     * @param playerTwoName
+     * @param playerOneWinner
+     * @param playerTwoWinner
+     */
     public void send_history_push(String playerOneName,String playerTwoName, boolean playerOneWinner,boolean playerTwoWinner){
         // create new TestMassage Java object
         HistoryPush message = new HistoryPush(userID,playerOneName,playerTwoName,playerOneWinner,playerTwoWinner);

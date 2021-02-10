@@ -4,8 +4,14 @@ import com.badlogic.gdx.graphics.Color;
 
 import javax.naming.Name;
 
+/**
+ * @author Ibtsam Ali Mahmood
+ * Player Enum Klasse in der der Spieler definiert wird.
+ * Farbe und Name sind dabei die wichtigsten Punkte.
+ * Diese werden von hier übernommen und zurückgegeben.
+ */
 public enum Player {
-    ONE(Color.PINK , "Player 1"), TWO(Color.CHARTREUSE , "Player 2");
+    ONE(Color.WHITE , "Player 1"), TWO(Color.CHARTREUSE , "Player 2");
 
     Player(final Color colour, final String name) {
         this.colour = colour;

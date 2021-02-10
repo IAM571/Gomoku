@@ -27,7 +27,7 @@ import java.util.Map;
 
 
 public class RankingScreen implements Screen {
-
+    // Alle wichtigen globalen Variablen. Größtenteils aus anderen Screens übernommen.
     private final Gomoku parent_;
     private final OrthographicCamera camera_;
     private final Viewport viewport_;
@@ -41,6 +41,14 @@ public class RankingScreen implements Screen {
     public List list;
     private SimpleClient client;
 
+    /**
+     * @author Ibtsam Ali Mahmood
+     * @param parent
+     * Rankingscreen Konstruktur
+     * Alle wichtigen Initialisierungen der globalen Varibalen sind hier.
+     * Grafische Dinge wurden ebenso hier aufgerufen; Buttons, Hintergrundbild, Hintergrundmusik,
+     * Rankingliste und dessen Scrollpanel etc.
+     */
     public RankingScreen(Gomoku parent) {
         // store reference to parent class
         parent_ = parent;
@@ -128,6 +136,9 @@ public class RankingScreen implements Screen {
 
             }
         });
+        //Aufruf zum Senden und Empfangen der Rankingliste vom Server.
+        //Verzögerung von 500ms für den Verbindungsaufbau vom Server.
+        //Catch für den Abfang einer Fehlers.
         try {
             client = new SimpleClient(new URI(String.format("ws://%s:%d", MainMenuScreen.host, MainMenuScreen.port)));
             client.connect();
@@ -138,10 +149,11 @@ public class RankingScreen implements Screen {
             exception.printStackTrace();
         }
 
+        //Die Liste, für das Ranking.
         list = new List<String>(skin_, "dimmed");
         list.setItems(ranking_list(client.getPlayerAndScoreMap()).toArray());
 
-
+        //Die Liste wird dem ScrollPane übergeben zur besseren Darstellung.
         ScrollPane scrollPane = new ScrollPane(list);
         scrollPane.setSize(260, 300);
         scrollPane.setPosition((float) client_area_dimensions.first / 2.f - scrollPane.getWidth() / 2.f
@@ -178,7 +190,13 @@ public class RankingScreen implements Screen {
 
 
     }
-
+    //Der Namen- und Punkte Eintrag für das Ranking
+    //Es wird eine Arraylist erstellt und eine Map. Der vorteil einer Arraylist gegenüber einem Array ist, dass durch
+    //die add dunkrion immer belieibig die Liste erweitert werden kann ebenso keine vordefinierte größe nötog ist, was in
+    //in diesem Fall praktischer ist. Die Map wurde gewählt, da man Paare speichern kann wie in diesem Fall: Name & Score.
+    //Es wird über die Map iteriert und die Rankings angepasst d.h. der mit der höchsten Punktzahl steht ganz oben.
+    //Durch eine temporäre Variable werden die Werte getauscht.
+    //Am ende wird die sortierte Liste zurückgegeben.
     public ArrayList<String> ranking_list(Map<String, PlayerAndScore> playerAndScoreMap) {
         ArrayList<String> winner_list = new ArrayList();
         if (playerAndScoreMap != null) {

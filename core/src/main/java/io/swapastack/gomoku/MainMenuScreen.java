@@ -32,7 +32,7 @@ import java.net.URI;
  * It displays the name of the game in latin and japanese letters.
  * Multiple buttons for interaction with the app.
  *
- * @author Dennis Jehle
+ * @author Dennis Jehle & Ibtsam Ali Mahmood
  */
 public class MainMenuScreen implements Screen {
 
@@ -143,7 +143,7 @@ public class MainMenuScreen implements Screen {
         // add main menu title string Label to Stage
         stage_.addActor(gomoku_label);
 
-        // load background texture
+        // load background texture (keine lizenz benötigt bzw. Stanard Pixaby Lizenz, frei nutzbares Bild)
         background_texture_ = new Texture("texture/wood.jpg");
 
         // load background music

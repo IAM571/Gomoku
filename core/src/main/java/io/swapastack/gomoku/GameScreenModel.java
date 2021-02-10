@@ -4,6 +4,10 @@ import com.badlogic.gdx.Gdx;
 
 import java.util.ArrayList;
 
+/**
+ * @author Ibtsam Ali Mahmood
+ * Deklarierung und Initialisierung einiger globaler Varibalen.
+ */
 public class GameScreenModel {
     // grid dimensions
     private static final int grid_size_ = 15;
@@ -32,6 +36,10 @@ public class GameScreenModel {
     private int opening_rule;
 
 
+    /**
+     * GameScreenModel Konstruktor
+     * Manche globale Varibalen werden hier Initialisiert.
+     */
     public GameScreenModel() {
         current_player = Player.ONE;
         gamestone_positions = new Player[grid_size_][grid_size_];
@@ -39,9 +47,18 @@ public class GameScreenModel {
         opening_rule = 0;
     }
 
+    /**
+     * Hier werden die Kachelpositionen eines Mausklicks berechnet.
+     * Es wird ein "neues" Koordinatensystem aufgestellt dessen Nullpunkt an der linken unteren Ecke
+     * des Spielfeldes beginnt. Ab da werden die Mausklicke umgerechnet in die 14 Kacheln
+     * @param xPosMouseClick Die X Koordinate des Mausklicks
+     * @param yPosMouseClick Die Y Koordinate des Mausklicks
+     * Es wird erst geprüft ob der Mausklick innerhalb der Grenzen des "neuen" Koordinatensystems ist. Falls ja werden
+     * vom Klick die Ränder, also die Flächen außerhalb des Gitters abgezogen. Dann werden diese durch die die Fläche einer
+     * Kachel geteilt. Man erhält den einen Wert der abgerundet der X/Y Kachelposition entspricht.
+     * @return Das Tuple der X und Y Position als Kachelposition wird zurückgegeben.
+     */
     public Tuple findTilesPosition(int xPosMouseClick, int yPosMouseClick) {
-
-
         if (xPosMouseClick >= grid_x_min && yPosMouseClick >= grid_y_min && xPosMouseClick <= grid_x_max && yPosMouseClick <= grid_y_max) {
 
             float left_zero_point_x = xPosMouseClick - grid_x_min;
@@ -52,7 +69,6 @@ public class GameScreenModel {
             int tile_pos_x = (int) tile_position_x;
             int tile_pos_y = (int) tile_position_y;
 
-
             Tuple tuple = new Tuple<Integer>(tile_pos_x, tile_pos_y);
             return tuple;
 
@@ -62,6 +78,14 @@ public class GameScreenModel {
         }
     }
 
+    /**
+     * Hier werden die oben berechneten Kachelpositionen übergeben um diese in Pixel umzurechnen
+     * damit die Steine auch bei leichtem daneben klicken an deren richtige position gesetzt werden.
+     * Hier wird die findTilesPosition Funktion rükcwärts berechnet.
+     * @param tile_x Die oben berechnete Kachelposition auf der X Achse wird übergeben
+     * @param tile_y Die oben berechnete Kachelposition auf der Y Achse wird übergeben
+     * @return Das Tuple der berechneten Pixel wird zurückgegeben
+     */
     public Tuple findPixels(int tile_x, int tile_y) {
 
 
@@ -82,6 +106,13 @@ public class GameScreenModel {
 
     }
 
+    /**
+     * Überprüfung der freien Position und zuordnung des aktuellen Spieler
+     * @param tile_pos_x X Kachel Position
+     * @param tile_pos_y Y Kachel Position
+     * @return falls die Position besetzt ist wird false ausgegeben, wenn nicht, dann true.
+     * Der Conuter (Zähler) wird immer um eins erhöht, sobald der aktuellle spieler einen Stein gesetzt hat.
+     * */
     public boolean setGamestone_position(int tile_pos_x, int tile_pos_y) {
 
         if (gamestone_positions[tile_pos_x][tile_pos_y] != null) {
@@ -94,6 +125,9 @@ public class GameScreenModel {
     }
 
 
+    /**
+     * Funktion, die den Spieler wechselt.
+     */
     public void change_player() {
         if (this.getCurrent_player() == Player.ONE) {
             this.setCurrent_player(Player.TWO);
@@ -103,6 +137,17 @@ public class GameScreenModel {
 
     }
 
+    /**
+     * Hier wird die SWAP2 Regel überpüft bis der Zähler vier (da er bei 1 beginnt) ist, ist der Spieler 1 an der Reihe.
+     * Ab vier wird der zweite Spieler nach seiner Auswahl gefragt.
+     * Je nach dem für was man sich entscheidet und welche Zahl der Zähler hat werden die verschiedenen Optionen ausgeführt.
+     * Bzw es werden im GameScreen durch die Rückgabewerte die verschiedenen Dialogfelder aufgerufen.
+     * @return 1 wird zurückgegeben nach dem ersten Zug um den SWAP2-Regel Dialog aurufen zu lassen.
+     * @return 2 wird zurückgegeben, wenn der Spieler sich für Option 3 entschieden hat und der andere Spieler den
+     * Farbtauschdialog braucht
+     * @return 4 wenn der Standardfall eintritt, also nichts passiert. Siehe GameScreen SwitchCase
+     * @see GameScreen
+     */
     public int handle_rules_after_gamestone() {
 
         if (this.getCounter() == 2) {
@@ -132,21 +177,37 @@ public class GameScreenModel {
         return 4;
     }
 
+    /**
+     * Ein einfacher tausch der Farben, mit einer temporären Variable.
+     */
     public void change_player_colour() {
         String name_temp = Player.ONE.getName();
         Player.ONE.setName(Player.TWO.getName());
         Player.TWO.setName(name_temp);
     }
 
+    /**
+     * @return gibt die Zahl des Counters zurück für die SWAP2 Regel
+     */
     public int getCounter() {
         return counter;
     }
 
+    /**
+     * @return Rückgabe der Spielstein Positionen als Array
+     */
     public Player[][] getGamestone_positions() {
         return gamestone_positions;
     }
 
 
+    /**
+     * Hier wird die Gewinnbedingung geprüft. Horizontal, Vertikal und Diagonal.
+     * @return Sobald fünf Steine Horizontal, Vertikal oder Diagonal in einer Reihe sind wird True zurückgegeben und der
+     * aktuelle Spieler hat gewonnen. Bei der Diagonalen sind vier verschiedene Funktionen. Zwei, welche die
+     * Bedingung von links nach rechts nach oben überprüfen und zwei die nach unten andersherum prüfen.
+     * Die überprüfung findet statt, in dem über das Spielfeld iteriert wird und die Kachel n mit der Kachel n+1 verglichen wird.
+     */
     //Winning condition
     //vertical
     public boolean win_condition() {
@@ -161,7 +222,6 @@ public class GameScreenModel {
                         gamestone_counter = 0;
                     }
                     if (gamestone_counter == 4) {
-                        System.out.println(getCurrent_player() + "Hat gewonnen");
                         return true;
                     }
                 }
@@ -179,7 +239,6 @@ public class GameScreenModel {
                         gamestone_counter = 0;
                     }
                     if (gamestone_counter == 4) {
-                        System.out.println(getCurrent_player() + "Hat gewonnen");
                         return true;
                     }
                 }
@@ -201,7 +260,6 @@ public class GameScreenModel {
                     gamestone_counter = 0;
                 }
                 if (gamestone_counter == 4) {
-                    System.out.println(getCurrent_player() + "Hat gewonnen");
                     return true;
                 }
                 row++;
@@ -221,7 +279,6 @@ public class GameScreenModel {
                     gamestone_counter = 0;
                 }
                 if (gamestone_counter == 4) {
-                    System.out.println(getCurrent_player() + "Hat gewonnen");
                     return true;
                 }
                 row++;
@@ -242,7 +299,6 @@ public class GameScreenModel {
                     gamestone_counter = 0;
                 }
                 if (gamestone_counter == 4) {
-                    System.out.println(getCurrent_player() + "Hat gewonnen");
                     return true;
                 }
                 row--;
@@ -262,7 +318,6 @@ public class GameScreenModel {
                     gamestone_counter = 0;
                 }
                 if (gamestone_counter == 4) {
-                    System.out.println(getCurrent_player() + "Hat gewonnen");
                     return true;
                 }
                 row--;
@@ -274,7 +329,7 @@ public class GameScreenModel {
         return false;
     }
 
-
+    // Es werden Variablen zurückgegeben, die man aufrufen muss.
     public Player getCurrent_player() {
         return current_player;
     }

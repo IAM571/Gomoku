@@ -6,9 +6,12 @@ public class PlayerAndScore{
     private int score;
 
     /**
-     *
-     * @param player_name
-     * @param score
+     * @author Ibtsam Ali Mahmood
+     * Spieler und Punkte Klasse
+     * Hier wird der Name und der Punktestand der Spieler zurückgegeben. Das ist relevant für die Rangliste.
+     * @see RankingScreen
+     * @param player_name der Name des Spielers
+     * @param score Die Punkte bei Sieg oder Niederlage
      */
     public PlayerAndScore(String player_name, int score) {
         this.player_name = player_name;

@@ -28,7 +28,7 @@ import java.net.URI;
  * https://github.com/libgdx/libgdx/wiki/Input-handling
  * Input and Event handling is necessary to handle mouse and keyboard input.
  *
- * @author Dennis Jehle
+ * @author Dennis Jehle & Ibtsam Ali Mahmood
  */
 public class GameScreen implements Screen {
     //Gamepiece placing
@@ -73,6 +73,13 @@ public class GameScreen implements Screen {
     private static final float line_width = 5.f;
 
 
+    /**
+     * @param parent
+     * Alle wichtigen Initialisierungen der globalen Varibalen sind hier.
+     * Grafische Dinge wurden ebenso hier aufgerufen; Buttons, Hintergrundbild, SWAP2-Regel & aktuelle
+     * Spielernzeige sowie die Hintergrundmusik
+     *
+     */
     public GameScreen(Gomoku parent) {
         //GamescreemModel method
         gameScreenModel = new GameScreenModel();
@@ -92,6 +99,7 @@ public class GameScreen implements Screen {
         shape_renderer_ = new ShapeRenderer();
         // initialize the Skin //Shade UI can be used under the CC BY license.
         //http://creativecommons.org/licenses/by/4.0/
+        //https://ray3k.wordpress.com/artwork/shade-ui-skin-for-libgdx/
         skin_ = new Skin(Gdx.files.internal("ShadeUI/shadeui/uiskin.json"));
         // create switch to MainMenu button
         Button menu_screen_button = new TextButton("LEAVE GAME", skin_, "round"); // "small");
@@ -118,7 +126,6 @@ public class GameScreen implements Screen {
         background_music_ = Gdx.audio.newMusic(Gdx.files.internal("piano/Original_Beat.mp3"));
         background_music_.setLooping(true);
         background_music_.play();
-
 
         // create a Label with the Playersname string
         Label player_label = new Label("Current Player:          ", skin_, "title");
@@ -169,6 +176,10 @@ public class GameScreen implements Screen {
         background_texture_ = new Texture("texture/wood.jpg");
     }
 
+    /**
+     * Sendet die gesamte Gewinnhistorie.
+     * Es gibt eine kurze Verzögerung von 1000ms für den Verbindungsaufabu für den Server.
+     */
     private void send_winner_history(){
         try {
             SimpleClient client = new SimpleClient(new URI(String.format("ws://%s:%d", MainMenuScreen.host, MainMenuScreen.port)));
@@ -183,6 +194,9 @@ public class GameScreen implements Screen {
         }
     }
 
+    /**
+     * @return Es wird der Spieler, der NICHT gerade am Zug ist zurückgegeben.
+     */
     private Player not_current_player(){
         if (gameScreenModel.getCurrent_player()==Player.ONE){
             return Player.TWO;
@@ -191,6 +205,9 @@ public class GameScreen implements Screen {
         }
     }
 
+    /**
+     * Hier werden die Namen nach dem Spiel wieder auf deren Defaultwerte zurückgesetzt und man kommt zurück auf den Menu Screen.
+     */
     private void change_screen_to_menu() {
         Player.ONE.setName("Player 1");
         Player.TWO.setName("Player 2");
@@ -219,8 +236,8 @@ public class GameScreen implements Screen {
 
     /**
      * Called when this screen becomes the current screen for a {@link Game}.
+     * @author Dennis Jehle & Ibtsam Ali Mahmood
      *
-     * @author Dennis Jehle
      */
     @Override
     public void show() {
@@ -229,6 +246,19 @@ public class GameScreen implements Screen {
 
         //Mouse click & game piece set
         multiplexer.addProcessor(new InputAdapter() {
+            /**
+             * Die Steine werden gesetzt. Wenn die Position frei ist wird dort bei einem klick auf die linke Maustauste
+             * ein Stein, falls die Position schon belegt ist, wird keiner gesetzt.
+             * @param screenX Ist der X-Achsen Abschnitt
+             * @param screenY Ist der Y-Achsen Abchnitt
+             * Inspiriert von https://stackoverflow.com/questions/17644429/libgdx-mouse-just-clicked
+             * @param pointer ist der Mauszeiger
+             * @param button  ist die Taste die gedrückt wurde
+             * @return true wird zurückgegeben, wenn die Position frei ist, false falls nicht.
+             * Hier werden die Regeln überprüft. Die Siegbedingung sowie die Swap2 Regel.
+             * Es werden die dazugehörigen Dialogfelder aufgerufen.
+             * @see GameScreenModel dort sind die ganzen Funktionen der Spielregeln.
+             */
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 if (button != Input.Buttons.LEFT || pointer > 0) return false;
@@ -267,6 +297,12 @@ public class GameScreen implements Screen {
         show_set_name_dialog();
     }
 
+    /**
+     * Inspiriert von: https://alvinalexander.com/source-code/how-create-libgdx-dialog-skin-example/
+     * Hier sind die Funktionen der verschiedenen Dialogfelder.
+     * Es gibt folgende Dialogfelder: Beim eingeben der Spielernamen, bei der Auswahl der Option für die SWAP2 Regel,
+     * für die Option die Farben zu tauschen und beim eintreffen der Sigebedingung.
+     */
     private void show_change_player_colour_dialog() {
         //show Colour change dialog
         Dialog dialog = new Dialog("    Change colour?      ", skin_) {
@@ -374,7 +410,9 @@ public class GameScreen implements Screen {
      * Called when the screen should render itself.
      *
      * @param delta The time in seconds since the last render.
-     * @author Dennis Jehle
+     * @author Dennis Jehle & Ibtsam Ali Mahmood
+     *
+     * Visualisierung des Spielfeldes und der Spielsteine.
      */
     @Override
     public void render(float delta) {
@@ -424,9 +462,11 @@ public class GameScreen implements Screen {
         }
         shape_renderer_.end();
 
+        //getting the calculated Gamestone positions
         gamestone_positions = gameScreenModel.getGamestone_positions();
+        //render the gamestone
         visualize_gamestones(gamestone_positions);
-
+        //Display the current Player
         player_label2.setText(gameScreenModel.getCurrent_player().getName());
 
         // update the Stage
@@ -436,6 +476,12 @@ public class GameScreen implements Screen {
 
 
     }
+
+    /**
+     * Funktion um den Stein zu visualisieren
+     * @param gamestone_positions Hier werden die berechneten Positionen für den Spielstein übergeben
+     * @see GameScreenModel
+     */
     private void visualize_gamestones(Player[][] gamestone_positions) {
         for (int x = 0; x < grid_size_; x++) {
             for (int y = 0; y < grid_size_; y++) {
@@ -450,6 +496,12 @@ public class GameScreen implements Screen {
     }
 
 
+    /**
+     * Die funktion um den Stein zu setzten
+     * @param colour Die farbe der Steine
+     * @param x_pixel die Pixel Koordinate auf der X Achse
+     * @param y_pixel die Pixel Koordinate auf der Y Achse
+     */
     private void setGamestone(Color colour, int x_pixel, int y_pixel) {
         shape_renderer_.setColor(colour);
         shape_renderer_.begin(ShapeType.Filled);
