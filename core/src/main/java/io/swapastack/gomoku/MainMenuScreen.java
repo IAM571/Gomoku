@@ -82,7 +82,7 @@ public class MainMenuScreen implements Screen {
      * This is the constructor for the MainMenuScreen class.
      *
      * @param parent reference to the parent object
-     * @author Dennis Jehle
+     * @author Ali Mahmood
      */
     public MainMenuScreen(Gomoku parent) {
         // store reference to parent class
